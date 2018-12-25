@@ -25,5 +25,13 @@ namespace Uno
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = true, AllowMultiple = false)]
 	public class GeneratedEqualityAttribute : Attribute
 	{
+		/// <summary>
+		/// If <c>true</c> (the default), an additional field which
+		/// lazily caches the hash code will be added to your type. If it is
+		/// <c>false</c>, the hash code will be recomputed each time <see cref="object.GetHashCode"/> is
+		/// called. You have to set this property to <c>false</c> if your type is a
+		/// <c>readonly struct</c>.
+		/// </summary>
+		public bool AddHashCodeField { get; set; } = true;
 	}
 }

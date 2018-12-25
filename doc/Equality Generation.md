@@ -140,7 +140,7 @@ of it).
    * For equivalents instances, the computed _hash code_
      **MUST PRODUCE THE SAME RESULT**.
    * **Hash Codes can't change over time** for the same instance (object).
-     For this reason the computed result will be cached.
+     For this reason the computed result will be cached by default, but see below.
    * The _hash code_ will be computed from all fields/properties tagged with
      `[EqualityHash]` and those tagged with `[EqualityKey]`. The same logic
      will apply for _key equality_, but will only use those tagged with the
@@ -150,6 +150,12 @@ of it).
      **will only use the `.Count` value for calculating the _hash code_.**
    * If nothing could be used to calculate the hash, the result will be
      hard-coded to zero (`0`).
+   * The `[GeneratedEquality]` attribute has a property `AddHashCodeField`. If
+     this property is set to `true` (the default), an additional field which
+     lazily caches the hash code will be added to your type. If it is
+     `false`, the hash code will be recomputed each time `GetHashCode` is
+     called. You have to set `AddHashCodeField` to `false` if your type is a
+     `readonly struct`.
 1. **Operator overloading**:
    * Overloading of operations will be automatic, you have nothing to do
      to enable it.

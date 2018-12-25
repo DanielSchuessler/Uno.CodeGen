@@ -5,6 +5,7 @@
 		<IsPackable>false</IsPackable>
 		<NoWarn>1701;1702;1705;NU1701</NoWarn>
 		<CodeAnalysisRuleSet>Uno.CodeGen.Tests.ruleset</CodeAnalysisRuleSet>
+		<LangVersion>7.2</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

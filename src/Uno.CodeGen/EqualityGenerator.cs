@@ -138,6 +138,7 @@ namespace Uno
 			var (equalityMembers, hashMembers, keyEqualityMembers) = GetEqualityMembers(typeSymbol);
 			var baseTypeInfo = GetBaseTypeInfo(typeSymbol);
 			var generateKeyEquals = baseTypeInfo.baseImplementsKeyEquals || baseTypeInfo.baseImplementsKeyEqualsT || keyEqualityMembers.Any();
+			var generatedEqualityAttribute = GetGeneratedEqualityAttributeInstance(typeSymbol);
 
 			_currentType = symbolNames.GetSymbolFullNameWithGenerics();
 
@@ -281,6 +282,10 @@ namespace Uno
 					builder.AppendLine();
 					builder.AppendLineInvariant("#region \".GetHashCode()\" Section -- THIS IS WHERE HASH CODE IS COMPUTED");
 
+					var baseGetHashCodeCall = baseTypeInfo.baseOverridesGetHashCode
+						                      ? "base.GetHashCode()"
+						                      : null;
+
 					builder.AppendLineInvariant("/// <inheritdoc />");
 					if (_isPureAttributePresent)
 					{
@@ -288,23 +293,31 @@ namespace Uno
 					}
 					using (builder.BlockInvariant("public override int GetHashCode()"))
 					{
-						builder.AppendLineInvariant("#pragma warning disable CS0171");
-						builder.AppendLineInvariant("return _computedHashCode ?? (int)(_computedHashCode = ComputeHashCode());");
-						builder.AppendLineInvariant("#pragma warning restore CS0171");
+						if (generatedEqualityAttribute.AddHashCodeField)
+						{
+							builder.AppendLineInvariant("#pragma warning disable CS0171");
+							builder.AppendLineInvariant("return _computedHashCode ?? (int)(_computedHashCode = ComputeHashCode());");
+							builder.AppendLineInvariant("#pragma warning restore CS0171");
+						}
+						else
+						{
+							GenerateHashLogic(typeSymbol, builder, hashMembers, baseGetHashCodeCall);
+						}
 					}
 
-					builder.AppendLine();
 
-					builder.AppendLineInvariant("private int? _computedHashCode;");
-
-					builder.AppendLine();
-
-					using (builder.BlockInvariant("private int ComputeHashCode()"))
+					if (generatedEqualityAttribute.AddHashCodeField)
 					{
-						var baseCall = baseTypeInfo.baseOverridesGetHashCode
-							? "base.GetHashCode()"
-							: null;
-						GenerateHashLogic(typeSymbol, builder, hashMembers, baseCall);
+						builder.AppendLine();
+
+						builder.AppendLineInvariant("private int? _computedHashCode;");
+
+						builder.AppendLine();
+
+						using (builder.BlockInvariant("private int ComputeHashCode()"))
+						{
+							GenerateHashLogic(typeSymbol, builder, hashMembers, baseGetHashCodeCall);
+						}
 					}
 
 					builder.AppendLineInvariant("#endregion");
@@ -358,6 +371,10 @@ namespace Uno
 
 						builder.AppendLine();
 
+						var baseGetKeyHashCodeCall = baseTypeInfo.baseImplementsKeyEquals || baseTypeInfo.baseImplementsKeyEqualsT
+							? "base.GetKeyHashCode()"
+							: null;
+
 						builder.AppendLineInvariant("/// <inheritdoc />");
 						if (_isPureAttributePresent)
 						{
@@ -365,22 +382,30 @@ namespace Uno
 						}
 						using (builder.BlockInvariant("public int GetKeyHashCode()"))
 						{
-							builder.AppendLineInvariant("return _computedKeyHashCode ?? (int)(_computedKeyHashCode = ComputeKeyHashCode());");
+							if (generatedEqualityAttribute.AddHashCodeField)
+							{
+								builder.AppendLineInvariant("return _computedKeyHashCode ?? (int)(_computedKeyHashCode = ComputeKeyHashCode());");
+							}
+							else
+							{
+								GenerateHashLogic(typeSymbol, builder, keyEqualityMembers, baseGetKeyHashCodeCall);
+							}
 						}
 
-						builder.AppendLine();
-
-						using (builder.BlockInvariant("private int ComputeKeyHashCode()"))
+						if (generatedEqualityAttribute.AddHashCodeField)
 						{
-							var baseCall = baseTypeInfo.baseImplementsKeyEquals || baseTypeInfo.baseImplementsKeyEqualsT
-								? "base.GetKeyHashCode()"
-								: null;
-							GenerateHashLogic(typeSymbol, builder, keyEqualityMembers, baseCall);
+							builder.AppendLine();
+
+							using (builder.BlockInvariant(
+								"private int ComputeKeyHashCode()"))
+							{
+								GenerateHashLogic(typeSymbol, builder, keyEqualityMembers, baseGetKeyHashCodeCall);
+							}
+
+							builder.AppendLine();
+
+							builder.AppendLineInvariant("private int? _computedKeyHashCode;");
 						}
-
-						builder.AppendLine();
-
-						builder.AppendLineInvariant("private int? _computedKeyHashCode;");
 
 						builder.AppendLineInvariant("#endregion");
 						builder.AppendLine();
@@ -911,6 +936,31 @@ namespace Uno
 			var msg = $"{nameof(EqualityGenerator)}/{_currentType}: {warningMsg}";
 			builder.AppendLineInvariant("#warning " + msg.Replace('\n', ' ').Replace('\r', ' '));
 			_logger.Warn(msg);
+		}
+
+		private GeneratedEqualityAttribute GetGeneratedEqualityAttributeInstance(
+			INamedTypeSymbol typeSymbol)
+		{
+			var attrData = typeSymbol.FindAttributeFlattened(_generatedEqualityAttributeSymbol);
+
+			var instance = new GeneratedEqualityAttribute();
+
+			// Should always be true
+			if (attrData != null)
+			{
+				foreach (var kv in attrData.NamedArguments)
+				{
+					switch (kv.Key)
+					{
+						case nameof(GeneratedEqualityAttribute.AddHashCodeField):
+							instance.AddHashCodeField = (bool) kv.Value.Value;
+							break;
+					}
+
+				}
+			}
+
+			return instance;
 		}
 	}
 }

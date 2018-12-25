@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Uno.CodeGen.Tests
@@ -25,6 +26,34 @@ namespace Uno.CodeGen.Tests
 	public partial class Given_GeneratedEquality
 	{
 		// Check other files
+
+		[TestMethod]
+		public void Equality_ForMyReadOnlyStruct()
+		{
+			var instances = new[]
+			{
+				new MyReadOnlyStruct("test", 3),
+				new MyReadOnlyStruct("test", 3),
+				new MyReadOnlyStruct("test2", 3),
+				new MyReadOnlyStruct("test", 4),
+				new MyReadOnlyStruct(null, 3),
+				new MyReadOnlyStruct(null, 4),
+			};
+
+			foreach (var x in instances)
+			{
+				foreach (var y in instances)
+				{
+					x.Equals(y).Should().Be(x.A == y.A && x.B == y.B);
+
+					x.GetHashCode().Equals(y.GetHashCode()).Should().Be(x.B == y.B);
+
+					x.KeyEquals(y).Should().Be(x.B == y.B);
+
+					x.GetKeyHashCode().Equals(y.GetKeyHashCode()).Should().Be(x.B == y.B);
+				}
+			}
+		}
 	}
 
 	[GeneratedEquality]
@@ -76,5 +105,20 @@ namespace Uno.CodeGen.Tests
 
 		[Key]
 		internal string B { get; }
+	}
+
+	[GeneratedEquality(AddHashCodeField = false)]
+	internal readonly partial struct MyReadOnlyStruct
+	{
+		internal string A { get; }
+
+		[EqualityKey]
+		internal int B { get; }
+
+		public MyReadOnlyStruct(string a, int b)
+		{
+			A = a;
+			B = b;
+		}
 	}
 }
