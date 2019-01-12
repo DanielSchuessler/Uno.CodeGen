@@ -107,7 +107,7 @@ namespace Uno.CodeGen.Tests
 		internal string B { get; }
 	}
 
-	[GeneratedEquality(AddHashCodeField = false)]
+	[GeneratedEquality(CacheHashCode = false)]
 	internal readonly partial struct MyReadOnlyStruct
 	{
 		internal string A { get; }

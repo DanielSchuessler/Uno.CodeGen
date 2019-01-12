@@ -32,6 +32,6 @@ namespace Uno
 		/// called. You have to set this property to <c>false</c> if your type is a
 		/// <c>readonly struct</c>.
 		/// </summary>
-		public bool AddHashCodeField { get; set; } = true;
+		public bool CacheHashCode { get; set; } = true;
 	}
 }

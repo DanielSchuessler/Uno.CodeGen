@@ -150,11 +150,11 @@ of it).
      **will only use the `.Count` value for calculating the _hash code_.**
    * If nothing could be used to calculate the hash, the result will be
      hard-coded to zero (`0`).
-   * The `[GeneratedEquality]` attribute has a property `AddHashCodeField`. If
+   * The `[GeneratedEquality]` attribute has a property `CacheHashCode`. If
      this property is set to `true` (the default), an additional field which
      lazily caches the hash code will be added to your type. If it is
      `false`, the hash code will be recomputed each time `GetHashCode` is
-     called. You have to set `AddHashCodeField` to `false` if your type is a
+     called. You have to set `CacheHashCode` to `false` if your type is a
      `readonly struct`.
 1. **Operator overloading**:
    * Overloading of operations will be automatic, you have nothing to do

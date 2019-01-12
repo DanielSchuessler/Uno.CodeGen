@@ -293,7 +293,7 @@ namespace Uno
 					}
 					using (builder.BlockInvariant("public override int GetHashCode()"))
 					{
-						if (generatedEqualityAttribute.AddHashCodeField)
+						if (generatedEqualityAttribute.CacheHashCode)
 						{
 							builder.AppendLineInvariant("#pragma warning disable CS0171");
 							builder.AppendLineInvariant("return _computedHashCode ?? (int)(_computedHashCode = ComputeHashCode());");
@@ -306,7 +306,7 @@ namespace Uno
 					}
 
 
-					if (generatedEqualityAttribute.AddHashCodeField)
+					if (generatedEqualityAttribute.CacheHashCode)
 					{
 						builder.AppendLine();
 
@@ -382,7 +382,7 @@ namespace Uno
 						}
 						using (builder.BlockInvariant("public int GetKeyHashCode()"))
 						{
-							if (generatedEqualityAttribute.AddHashCodeField)
+							if (generatedEqualityAttribute.CacheHashCode)
 							{
 								builder.AppendLineInvariant("return _computedKeyHashCode ?? (int)(_computedKeyHashCode = ComputeKeyHashCode());");
 							}
@@ -392,7 +392,7 @@ namespace Uno
 							}
 						}
 
-						if (generatedEqualityAttribute.AddHashCodeField)
+						if (generatedEqualityAttribute.CacheHashCode)
 						{
 							builder.AppendLine();
 
@@ -952,8 +952,8 @@ namespace Uno
 				{
 					switch (kv.Key)
 					{
-						case nameof(GeneratedEqualityAttribute.AddHashCodeField):
-							instance.AddHashCodeField = (bool) kv.Value.Value;
+						case nameof(GeneratedEqualityAttribute.CacheHashCode):
+							instance.CacheHashCode = (bool) kv.Value.Value;
 							break;
 					}
 
